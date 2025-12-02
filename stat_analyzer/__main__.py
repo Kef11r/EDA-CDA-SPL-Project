@@ -1,55 +1,64 @@
 import sys
 import pandas as pd
-from . import eda
-from .hypothesis_tests import (HYPOTHESES, run_or_suggest, run_test_by_name,
-)
+from .eda import load_data, basic_info, numerical_summary, categorical_summary, correlation_matrix
+from .hypothesis_tests import (HYPOTHESES, run_or_suggest, run_test_by_name)
+from stat_analyzer.hypothesis_tests.runner import load_custom_test
+from .hypothesis_tests import TEST_FUNCTIONS
 
 
 def load_dataset() -> pd.DataFrame:
-    df = eda.load_data()
+    """Load dataset from eda.py"""
+    df = load_data()
     return df
 
-
 def print_columns(df: pd.DataFrame) -> None:
+    """All columns with dtypes"""
     print("\nДоступні колонки:")
     for col in df.columns:
-        print(f"  {col:20}  dtype = {df[col].dtype}")
+        print(f"{col:20} dtype = {df[col].dtype}")
     print()
 
-
 def run_basic_eda(df: pd.DataFrame) -> None:
+    """Main info about the dataset"""
     print("\n=== Базова інформація про датасет ===")
-    eda.basic_info(df)
+    basic_info(df)
 
     print("\n=== Описова статистика для числових змінних ===")
-    print(eda.numerical_summary(df))
+    print(numerical_summary(df))
 
     print("\n=== Частоти для категоріальних змінних (топ 5) ===")
-    cat_summary = eda.categorical_summary(df)
+    cat_summary = categorical_summary(df)
     for col, vc in cat_summary.items():
         print(f"\nКолонка: {col}")
         print(vc)
+
     print("\n=== Кореляційна матриця для числових змінних ===")
-    print(eda.correlation_matrix(df))
+    print(correlation_matrix(df))
 
 def choose_columns(df: pd.DataFrame) -> tuple[str, str]:
-    print_columns(df)
-    col1 = input("Введіть назву першої змінної: ").strip()
-    col2 = input("Введіть назву другої змінної: ").strip()
-
-    if col1 not in df.columns or col2 not in df.columns:
-        print("Помилка: одна з колонок не знайдена у датасеті.")
+    """User chooses columns to use"""
+    print("\n Доступні колонки:")
+    for idx, col in enumerate(df.columns):
+        print(f"{idx}: {col}")
+    try:
+        col1_idx = int(input("Enter the first column index: "))
+        col2_idx = int(input("Enter the second column index: "))
+        if col1_idx not in range(len(df.columns)) and col2_idx not in range(len(df.columns)):
+            print("Обрано помилкові індекси.")
+            raise SystemExit(1)
+        col1 = df.columns[col1_idx]
+        col2 = df.columns[col2_idx]
+    except ValueError:
+        print("Потрібно ввести ціле число.")
         raise SystemExit(1)
     return col1, col2
 
 def run_hypothesis_interactive(df: pd.DataFrame) -> None:
+    """Chooses the hypothesis test and the run of the test"""
     col1, col2 = choose_columns(df)
-    description = input(
-        "Коротко опишіть гіпотезу (можна залишити порожнім): "
-    ).strip()
+    description = input("Коротко опишіть гіпотезу (можна залишити порожнім): ").strip()
     if not description:
         description = f"Гіпотеза для змінних {col1} і {col2}"
-
     result = run_or_suggest(
         df,
         col1=col1,
@@ -57,22 +66,18 @@ def run_hypothesis_interactive(df: pd.DataFrame) -> None:
         description=description,
         auto=False,
     )
-
     if result["mode"] == "run":
         print("\n=== Результат тесту ===")
         print(result["report"])
         return
-
     if result["mode"] == "none":
         print(result["message"])
         return
-
     if result["mode"] == "suggest":
         tests = result.get("possible_tests", [])
         if not tests:
             print(result["message"])
             return
-
         print("\n", result["message"])
         print("Можливі тести:")
         for i, tname in enumerate(tests, start=1):
@@ -90,7 +95,6 @@ def run_hypothesis_interactive(df: pd.DataFrame) -> None:
             return
         result_dict = run_test_by_name(df, test_name, col1, col2)
         from .hypothesis_tests.runner import interpret_result
-
         report = interpret_result(description, result_dict)
         print("\n=== Результат обраного тесту ===")
         print(report)
@@ -112,6 +116,7 @@ def print_menu() -> None:
     print("0. Вихід")
 
 def main() -> None:
+    """Main function"""
     df = load_dataset()
     while True:
         print_menu()

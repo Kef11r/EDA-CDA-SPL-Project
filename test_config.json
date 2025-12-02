@@ -1,0 +1,32 @@
+{
+    "custom_tests": [
+        {
+          "name": "pearson",
+          "function": "run_pearson"
+        },
+        {
+          "name": "spearman",
+          "function": "run_spearman"
+        },
+        {
+          "name": "ttest",
+          "function": "run_ttest_ind"
+        },
+        {
+          "name": "mannwhitney",
+          "function": "run_mannwhitney"
+        },
+        {
+          "name": "anova",
+          "function": "run_anova"
+        },
+        {
+          "name": "kruskal",
+          "function": "run_kruskal"
+        },
+        {
+          "name": "chi",
+          "function": "run_chi"
+        }
+    ]
+}
