@@ -50,10 +50,87 @@ def run_pearson(data, col1, col2):
             "error": "Need to be numerical for this test"
         }
 
-def run_or_suggest(df, col1, col2, description=None, auto=False):
-    # Отримуємо список тестів, які підходять для пар колонок
-    possible_tests = suggest_tests(df, col1, col2)
+def run_spearman(df: pd.DataFrame, col1: str, col2: str):
+    """Spearman rank correlation"""
+    data_cleaned = df[[col1, col2]].dropna()
+    stat, p = stats.spearmanr(data_cleaned[col1], data_cleaned[col2])
+    return {
+        "test": "spearman",
+        "statistic": float(stat),
+        "p_value": float(p),
+    }
 
+def run_ttest_ind(df: pd.DataFrame, group_col: str, target_col: str):
+    """Independent samples t test"""
+    groups = df[group_col].dropna().unique()
+    if len(groups) != 2:
+        return {"error": "t test requires exactly two groups"}
+    g1 = df[df[group_col] == groups[0]][target_col].dropna()
+    g2 = df[df[group_col] == groups[1]][target_col].dropna()
+    stat, p = stats.ttest_ind(g1, g2, equal_var=False)
+    return {
+        "test": "ttest",
+        "statistic": float(stat),
+        "p_value": float(p),
+    }
+
+def run_mannwhitney(df: pd.DataFrame, group_col: str, target_col: str) :
+    """Mann Whitney U test"""
+    groups = df[group_col].dropna().unique()
+    if len(groups) != 2:
+        return {"error": "Mann Whitney requires exactly two groups"}
+    g1 = df[df[group_col] == groups[0]][target_col].dropna()
+    g2 = df[df[group_col] == groups[1]][target_col].dropna()
+    stat, p = stats.mannwhitneyu(g1, g2, alternative="two sided")
+    return {
+        "test": "mannwhitney",
+        "statistic": float(stat),
+        "p_value": float(p),
+    }
+
+
+def run_anova(df: pd.DataFrame, group_col: str, target_col: str):
+    """One way ANOVA"""
+    groups = []
+    for g in df[group_col].dropna().unique():
+        groups.append(df[df[group_col] == g][target_col].dropna())
+    if len(groups) < 2:
+        return {"error": "ANOVA requires at least two groups"}
+    stat, p = stats.f_oneway(*groups)
+    return {
+        "test": "anova",
+        "statistic": float(stat),
+        "p_value": float(p),
+    }
+
+def run_kruskal(df: pd.DataFrame, group_col: str, target_col: str):
+    """Kruskal Wallis test"""
+    groups = []
+    for g in df[group_col].dropna().unique():
+        groups.append(df[df[group_col] == g][target_col].dropna())
+    if len(groups) < 2:
+        return {"error": "Kruskal requires at least two groups"}
+    stat, p = stats.kruskal(*groups)
+    return {
+        "test": "kruskal",
+        "statistic": float(stat),
+        "p_value": float(p),
+    }
+
+
+def run_chi(df: pd.DataFrame, col1: str, col2: str):
+    """Chi square test of independence"""
+    table = pd.crosstab(df[col1], df[col2])
+    stat, p, dof, expected = stats.chi2_contingency(table)
+    return {
+        "test": "chi",
+        "statistic": float(stat),
+        "p_value": float(p),
+        "dof": float(dof),
+    }
+
+def run_or_suggest(df, col1, col2, description=None, auto=False):
+    possible_tests = suggest_tests(df, col1, col2)
     if not possible_tests:
         return {"mode": "none", "message": "Не вдалося підібрати підходящий тест для цих змінних."}
 
@@ -63,21 +140,14 @@ def run_or_suggest(df, col1, col2, description=None, auto=False):
         result = run_test_by_name(df, test_name, col1, col2)
         report = interpret_result(description or f"Автоматична гіпотеза для {col1} і {col2}", result)
         return {"mode": "run", "used_test": test_name, "result": result, "report": report}
-
-    # Якщо авто-режим вимкнений, пропонуємо вибір тесту користувачу
     return {"mode": "suggest", "message": "Можна застосувати кілька тестів, оберіть потрібний.",
             "possible_tests": possible_tests}
 
 
 def run_test_by_name(df, test_name, col1, col2):
-    # Перевіряємо, чи тест є в словнику тестів
     if test_name not in TEST_FUNCTIONS:
         raise ValueError(f"Невідомий тест {test_name!r}")
-
-    # Виконуємо тест
     test_func = TEST_FUNCTIONS[test_name]
-
-    # Для категоріальних і числових змінних може знадобитися окремий підхід
     return test_func(df, col1, col2)
 
 
@@ -108,18 +178,14 @@ def interpret_result(description, result, alpha=0.05):
     return report
 
 
-def run_all_presets(df, presets, auto=True, alpha=0.05):
+def run_all_presets(df, presets, auto=True):
     reports = []
-
-    # Для кожної гіпотези
     for hypothesis in presets:
         cols = hypothesis["cols"]
         description = hypothesis.get("description", f"Гіпотеза для {cols}")
         col1, col2 = cols[0], cols[1]
-
         # Виконати тест на основі гіпотези
         result = run_or_suggest(df, col1, col2, description=description, auto=auto)
-
         if result["mode"] == "run":
             reports.append(result["report"])
         else:
