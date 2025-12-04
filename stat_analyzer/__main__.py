@@ -2,6 +2,15 @@ import sys
 import pandas as pd
 from .eda import load_data, basic_info, numerical_summary, categorical_summary, correlation_matrix
 from .hypothesis_tests import (HYPOTHESES, run_or_suggest, run_test_by_name)
+from .hypothesis_tests.plots import (
+    plot_histogram,
+    plot_boxplot,
+    plot_correlation_heatmap,
+    plot_bar_counts,
+    plot_pairplot,
+)
+
+
 from stat_analyzer.hypothesis_tests.runner import load_custom_test
 from .hypothesis_tests import TEST_FUNCTIONS
 
@@ -108,11 +117,52 @@ def run_presets(df: pd.DataFrame) -> None:
         print(rep)
         print("-" * 60)
 
+def run_plots(df: pd.DataFrame) -> None:
+    while True:
+        print("\n=== Графіки ===")
+        print("1. Histogram (гістограма)")
+        print("2. Boxplot (ящик з вусами)")
+        print("3. Correlation Heatmap (теплова карта)")
+        print("4. Bar Counts (частоти категорій)")
+        print("5. Pairplot (парні графіки)")
+        print("0. Назад")
+
+        choice = input("Ваш вибір: ").strip()
+
+        if choice == "1":
+            print_columns(df)
+            col = input("Колонка для гістограми: ").strip()
+            plot_histogram(df, col)
+
+        elif choice == "2":
+            print_columns(df)
+            col = input("Колонка для boxplot: ").strip()
+            plot_boxplot(df, col)
+
+        elif choice == "3":
+            plot_correlation_heatmap(df)
+
+        elif choice == "4":
+            print_columns(df)
+            col = input("Колонка для barplot: ").strip()
+            plot_bar_counts(df, col)
+
+        elif choice == "5":
+            print("Створюю pairplot... Це може тривати декілька секунд.")
+            plot_pairplot(df)
+
+        elif choice == "0":
+            return
+
+        else:
+            print("Некоректний вибір.")
+
 def print_menu() -> None:
     print("\n=== Меню аналізу vgsales ===")
     print("1. Базовий EDA")
     print("2. Перевірити власну гіпотезу (обрати змінні)")
     print("3. Запустити всі наперед задані гіпотези")
+    print("4. Побудувати графіки")
     print("0. Вихід")
 
 def main() -> None:
@@ -127,6 +177,9 @@ def main() -> None:
             run_hypothesis_interactive(df)
         elif choice == "3":
             run_presets(df)
+        elif choice == "4":
+            run_plots(df)
+
         elif choice == "0":
             print("Завершення роботи.")
             sys.exit(0)
@@ -134,3 +187,4 @@ def main() -> None:
             print("Невідомий пункт меню, спробуйте ще раз.")
 if __name__ == "__main__":
     main()
+
