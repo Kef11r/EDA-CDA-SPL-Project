@@ -1,40 +1,14 @@
-from openai import OpenAI
-from stat_analyzer.config import OPENROUTER_URL, OPENAI_API_KEY
+from langchain_openai import ChatOpenAI
+from stat_analyzer.config import OPENAI_API_KEY, OPENROUTER_URL
 
-client = OpenAI(
-    api_key = OPENAI_API_KEY,
-    base_url = OPENROUTER_URL
+llm = ChatOpenAI(
+    api_key=OPENAI_API_KEY,
+    base_url=OPENROUTER_URL,
+    model="openai/gpt-5.1"
 )
-def ai_hypothesis_test(prompt: str, model: str = 'openai/gpt-5.1'):
-    response = client.chat.completions.create(
-        model = model,
-        messages = [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-    )
-    first_answer = response.choices[0].message["content"]
-    messages = [
-        {
-            "role": "user", "content": prompt
-        },
-        {
-            "role": "assistant",
-            "content": first_answer
-        },
-        {
-            "role": "user",
-            "content": "Are you sure?"
-        }
-    ]
+def ai_hypothesis_test(prompt: str):
+    first_answer = llm.invoke(prompt).content
+    follow_up_prompt = f"User hypothesis: {prompt}. Your previous answer: {first_answer}. User: Are you sure?"
+    second_answer = llm.invoke(follow_up_prompt).content
 
-    #2nd API call
-    response2 = client.chat.completions.create(
-        model = model,
-        messages = messages
-    )
-    second_answer = response2.choices[0].message["content"]
     return first_answer, second_answer
-

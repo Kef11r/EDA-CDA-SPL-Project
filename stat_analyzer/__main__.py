@@ -2,9 +2,7 @@ import sys
 import pandas as pd
 from .eda import load_data, basic_info, numerical_summary, categorical_summary, correlation_matrix
 from .hypothesis_tests import (HYPOTHESES, run_or_suggest, run_test_by_name)
-from stat_analyzer.hypothesis_tests.runner import load_custom_test
-from .hypothesis_tests import TEST_FUNCTIONS
-
+from stat_analyzer.ai.ai_agent import ai_hypothesis_test
 
 def load_dataset() -> pd.DataFrame:
     """Load dataset from eda.py"""
@@ -43,7 +41,7 @@ def choose_columns(df: pd.DataFrame) -> tuple[str, str]:
     try:
         col1_idx = int(input("Enter the first column index: "))
         col2_idx = int(input("Enter the second column index: "))
-        if col1_idx not in range(len(df.columns)) and col2_idx not in range(len(df.columns)):
+        if col1_idx not in range(len(df.columns)) or col2_idx not in range(len(df.columns)):
             print("Обрано помилкові індекси.")
             raise SystemExit(1)
         col1 = df.columns[col1_idx]
@@ -59,6 +57,17 @@ def run_hypothesis_interactive(df: pd.DataFrame) -> None:
     description = input("Коротко опишіть гіпотезу (можна залишити порожнім): ").strip()
     if not description:
         description = f"Гіпотеза для змінних {col1} і {col2}"
+    #AI agent start
+    print("\n=== АІ рекомендація щодо вибору тесту===")
+    try:
+        first_answer, second_answer = ai_hypothesis_test(description)
+        print("\nПерша відповідь АІ:")
+        print(first_answer)
+        print("\nУточнення?")
+        print(second_answer)
+    except Exception as e:
+        print(f"\nНе вдалося отримати відповідь від АІ. Помилка {e}")
+
     result = run_or_suggest(
         df,
         col1=col1,

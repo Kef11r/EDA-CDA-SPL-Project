@@ -135,7 +135,7 @@ def run_or_suggest(df, col1, col2, description=None, auto=False):
         return {"mode": "none", "message": "Не вдалося підібрати підходящий тест для цих змінних."}
 
     if auto:
-        # Якщо auto = True, запускаємо перший тест в списку
+        # If auto = True, run the first test from the list
         test_name = possible_tests[0]
         result = run_test_by_name(df, test_name, col1, col2)
         report = interpret_result(description or f"Автоматична гіпотеза для {col1} і {col2}", result)
@@ -143,13 +143,11 @@ def run_or_suggest(df, col1, col2, description=None, auto=False):
     return {"mode": "suggest", "message": "Можна застосувати кілька тестів, оберіть потрібний.",
             "possible_tests": possible_tests}
 
-
 def run_test_by_name(df, test_name, col1, col2):
     if test_name not in TEST_FUNCTIONS:
         raise ValueError(f"Невідомий тест {test_name!r}")
     test_func = TEST_FUNCTIONS[test_name]
     return test_func(df, col1, col2)
-
 
 def interpret_result(description, result, alpha=0.05):
     test_name = result.get("test", "unknown")
@@ -174,9 +172,7 @@ def interpret_result(description, result, alpha=0.05):
         f"p value: {p_value:.4f}\n"
         f"Рішення при alpha = {alpha:.2f}: {decision}"
     )
-
     return report
-
 
 def run_all_presets(df, presets, auto=True):
     reports = []
@@ -184,7 +180,7 @@ def run_all_presets(df, presets, auto=True):
         cols = hypothesis["cols"]
         description = hypothesis.get("description", f"Гіпотеза для {cols}")
         col1, col2 = cols[0], cols[1]
-        # Виконати тест на основі гіпотези
+        # Complete test based on a hypothesis
         result = run_or_suggest(df, col1, col2, description=description, auto=auto)
         if result["mode"] == "run":
             reports.append(result["report"])
