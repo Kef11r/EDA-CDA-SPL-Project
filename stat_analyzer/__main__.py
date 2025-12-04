@@ -59,6 +59,7 @@ def run_hypothesis_interactive(df: pd.DataFrame) -> None:
         description = f"Гіпотеза для змінних {col1} і {col2}"
     #AI agent start
     print("\n=== АІ рекомендація щодо вибору тесту===")
+    print("Sending request to LLM…")
     try:
         first_answer, second_answer = ai_hypothesis_test(description)
         print("\nПерша відповідь АІ:")
