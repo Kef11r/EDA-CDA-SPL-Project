@@ -1,25 +1,20 @@
 from typing import List
 import pandas as pd
 
-
 def detect_type(series: pd.Series) -> str:
     if pd.api.types.is_numeric_dtype(series):
         return "numeric"
     return "categorical"
 
-
 def _ensure_category_first(df: pd.DataFrame, col1: str,
                            col2: str,) -> tuple[str, str]:
-
     t1 = detect_type(df[col1])
     t2 = detect_type(df[col2])
-
     if t1 == "categorical" and t2 == "numeric":
         return col1, col2
     if t1 == "numeric" and t2 == "categorical":
         return col2, col1
     return col1, col2
-
 
 def suggest_tests(df: pd.DataFrame, col1: str,
                   col2: str,) -> List[str]:

@@ -1,9 +1,12 @@
 import os
+from typing import Dict, List
 from langchain_openai import ChatOpenAI
-from stat_analyzer.config import OPENAI_API_KEY, OPENROUTER_URL
+from stat_analyzer.config import GEMINI_API_KEY, OPENROUTER_URL
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
 
 llm = ChatOpenAI(
-    api_key=OPENAI_API_KEY,
+    api_key=GEMINI_API_KEY,
     base_url=OPENROUTER_URL,
     model="google/gemini-2.5-flash",
     max_tokens = 512,
@@ -11,11 +14,62 @@ llm = ChatOpenAI(
     timeout = 3
 )
 def ai_hypothesis_test(prompt: str):
+    """Take description of the hypothesis and return 1 ender AI response, if anything gone wrong - raise RunTime Error"""
+    prompt = prompt.strip()
     try:
         first_answer = llm.invoke(prompt).content
-        follow_up_prompt = f"User hypothesis: {prompt}. Your previous answer: {first_answer}. User: Are you sure?"
-        second_answer = llm.invoke(follow_up_prompt).content
-
-        return first_answer, second_answer
+        return first_answer
     except:
         raise RuntimeError(f"Gemini app error")
+
+json_parser = JsonOutputParser()
+prompt_template = ChatPromptTemplate.from_template("""
+Ти статистичний консультант.
+Користувач формулює гіпотезу українською або англійською, а також має перелік доступних статистичних тестів.
+Гіпотеза: {hypothesis}
+Доступні тести: {available_tests}
+Завдання:
+1. Обери один або кілька тестів які найкраще підходять до цієї гіпотези.
+2. Обирай тільки з доступних тестів, не вигадуй нові назви.
+3. Коротко поясни українською чому ці тести підходять.
+
+Поверни відповідь тільки у вигляді валідного JSON з полями:
+- "recommended_tests"  список рядків  назв тестів
+- "explanation"  рядок з коротким поясненням
+{format_instructions}""")
+# Ланцюжок prompt -> llm -> JSON парсер
+recommend_chain = prompt_template | llm | json_parser
+def recommend_tests_from_hypothesis(
+    hypothesis: str,
+    available_tests: List[str],) -> Dict[str, object]:
+    """
+    Викликає LLM і повертає структуру:
+    {
+        "recommended_tests": [...],
+        "explanation": "..."
+    }
+    """
+    if not available_tests:
+        return {
+            "recommended_tests": [],
+            "explanation": "Немає доступних тестів для цієї пари змінних.",
+        }
+    try:
+        result = recommend_chain.invoke(
+            {
+                "hypothesis": hypothesis,
+                "available_tests": ", ".join(available_tests),
+                "format_instructions": json_parser.get_format_instructions(),
+            }
+        )
+    except Exception as e:
+        return {
+            "recommended_tests": [],
+            "explanation": f"АІ не зміг сформувати рекомендацію. Помилка {e}",
+        }
+    rec = result.get("recommended_tests") or []
+    rec = [t for t in rec if t in available_tests]
+    return {
+        "recommended_tests": rec,
+        "explanation": (result.get("explanation") or "").strip(),
+    }
