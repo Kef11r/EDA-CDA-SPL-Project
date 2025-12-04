@@ -1,8 +1,9 @@
 from openai import OpenAI
+from stat_analyzer.config import OPENROUTER_URL, OPENAI_API_KEY
 
 client = OpenAI(
-    OPENAI_API_KEY="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",
-    OPENROUTER_API_KEY = "https://openrouter.ai/api/v1"
+    api_key = OPENAI_API_KEY,
+    base_url = OPENROUTER_URL
 )
 def ai_hypothesis_test(prompt: str, model: str = 'openai/gpt-5.1'):
     response = client.chat.completions.create(
