@@ -8,7 +8,7 @@ from langchain_core.output_parsers import JsonOutputParser
 llm = ChatOpenAI(
     api_key=GEMINI_API_KEY,
     base_url=OPENROUTER_URL,
-    model="google/gemini-2.5-flash",
+    model="openai/gpt-oss-20b:free",
     max_tokens = 512,
     max_retries=0,
     timeout = 3
@@ -29,6 +29,7 @@ prompt_template = ChatPromptTemplate.from_template("""
 Гіпотеза: {hypothesis}
 Доступні тести: {available_tests}
 Завдання:
+0. Розпиши як колонки залежать між собою у датасеті і якусь коротку інформацію.
 1. Обери один або кілька тестів які найкраще підходять до цієї гіпотези.
 2. Обирай тільки з доступних тестів, не вигадуй нові назви.
 3. Коротко поясни українською чому ці тести підходять.
@@ -39,6 +40,7 @@ prompt_template = ChatPromptTemplate.from_template("""
 {format_instructions}""")
 # Ланцюжок prompt -> llm -> JSON парсер
 recommend_chain = prompt_template | llm | json_parser
+
 def recommend_tests_from_hypothesis(
     hypothesis: str,
     available_tests: List[str],) -> Dict[str, object]:
@@ -46,13 +48,15 @@ def recommend_tests_from_hypothesis(
     Викликає LLM і повертає структуру:
     {
         "recommended_tests": [...],
-        "explanation": "..."
+        "explanation": "...",
+        "columns_comment": "..."
     }
     """
     if not available_tests:
         return {
             "recommended_tests": [],
             "explanation": "Немає доступних тестів для цієї пари змінних.",
+            "columns_comment": ""
         }
     try:
         result = recommend_chain.invoke(
@@ -66,10 +70,12 @@ def recommend_tests_from_hypothesis(
         return {
             "recommended_tests": [],
             "explanation": f"АІ не зміг сформувати рекомендацію. Помилка {e}",
+            "columns_comment": ""
         }
     rec = result.get("recommended_tests") or []
     rec = [t for t in rec if t in available_tests]
     return {
         "recommended_tests": rec,
         "explanation": (result.get("explanation") or "").strip(),
+        "columns_comment": (result.get("columns_comment") or "").strip()
     }

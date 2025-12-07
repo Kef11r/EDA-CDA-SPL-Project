@@ -1,6 +1,5 @@
 import json
 import pandas as pd
-import scipy.stats as stats
 from typing import Dict
 from .detectors import detect_type, suggest_tests
 from . import tests as test_impl
@@ -14,7 +13,7 @@ TEST_FUNCTIONS = {
     "mannwhitney": test_impl.run_mannwhitney,
     "anova": test_impl.run_anova,
     "kruskal": test_impl.run_kruskal,
-    "chi": test_impl.run_chi,
+    "chi2": test_impl.run_chi,
 }
 def load_custom_test(test_config_path: str) -> Dict:
     """
@@ -76,7 +75,7 @@ def interpret_result(description, result, alpha=0.05):
         f"Тест: {test_name}\n"
         f"Статистика: {statistic:.4f}\n"
         f"p value: {p_value:.4f}\n"
-        f"Рішення при alpha = {alpha:.2f}: {decision}"
+        f"Рішення при alpha = {alpha:.4f}: {decision}"
     )
     return report
 
