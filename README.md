@@ -19,41 +19,42 @@
 ```bash
 git clone <URL_твого_репозиторію>
 cd EDA-CDA-SPL-Project
+```
 
 ### 1.2. Створити та активувати віртуальне оточення
 
-python -m venv .venv
+```python -m venv .venv
 # Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 # або cmd
 .\.venv\Scripts\activate.bat
-
+```
 ### 1.3. Встановити залежності
 
-pip install pandas scipy matplotlib seaborn
+```pip install pandas scipy matplotlib seaborn
 pip install langchain-openai langchain-core openai python-dotenv
-
+```
 ### 1.4. Підготовка .env для АІ
 
-OPENROUTER_URL="https://openrouter.ai/api/v1"
+```OPENROUTER_URL="https://openrouter.ai/api/v1"
 GEMINI_API_KEY="sk-or-v1-...тут_твій_OpenRouter_API_ключ..."
-
+```
 ### 1.5. Запуск інтерфейсу
 
 Запускати через термінал 'python -m stat_analyzer' python package
 Вигляд меню:
-=== Меню аналізу vgsales ===
+```=== Меню аналізу vgsales ===
 1. Базовий EDA
 2. Перевірити власну гіпотезу (обрати змінні)
 3. Запустити всі наперед задані гіпотези
 4. Побудувати графіки
 5. Увімкнути / вимкнути режим маленької вибірки (300 рядків)   # якщо ця фіча увімкнена у main
 0. Вихід
-
+```
 
 ## 2. Використання бібліотеки через import
 ### 2.1. EDA функції (stat_analyzer.eda):
-load_data(path: Path | str) завантажує CSV датасет
+```load_data(path: Path | str) завантажує CSV датасет
 
 basic_info(df) друкує форму, типи, пропуски
 
@@ -62,14 +63,14 @@ numerical_summary(df, columns=None) повертає .describe() по число
 categorical_summary(df, columns=None, top_n=5) повертає топ значень по категоріях
 
 correlation_matrix(df, columns=None) будує кореляційну матрицю по числових
-
+```
 ### 2.2. Статистичні тести та авто підбір (stat_analyzer.hypothesis_tests):
-suggest_tests(df, col1, col2) повертає список тестів для пари змінних
+```suggest_tests(df, col1, col2) повертає список тестів для пари змінних
 
 run_test_by_name(df, test_name, col1, col2) запускає відповідний тест
 
 run_or_suggest(...) або запускає тест, або повертає список можливих
-
+```
 ### 2.3. Візуалізації (stat_analyzer.hypothesis_tests.plots):
 
 
