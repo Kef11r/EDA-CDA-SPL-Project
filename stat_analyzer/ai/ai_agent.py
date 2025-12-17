@@ -1,5 +1,3 @@
-import os
-from typing import Dict, List
 from langchain_openai import ChatOpenAI
 from stat_analyzer.config import GEMINI_API_KEY, OPENROUTER_URL
 from langchain_core.prompts import ChatPromptTemplate
@@ -12,6 +10,7 @@ llm = ChatOpenAI(
     max_tokens = 512,
     max_retries=0,
     timeout = 3
+    #test-time compute - динамічне масштабування обчислюваних ресурсів :)
 )
 def ai_hypothesis_test(prompt: str):
     """Take description of the hypothesis and return 1 ender AI response, if anything gone wrong - raise RunTime Error"""
@@ -38,12 +37,12 @@ prompt_template = ChatPromptTemplate.from_template("""
 - "recommended_tests"  список рядків  назв тестів
 - "explanation"  рядок з коротким поясненням
 {format_instructions}""")
+
 # Ланцюжок prompt -> llm -> JSON парсер
 recommend_chain = prompt_template | llm | json_parser
 
-def recommend_tests_from_hypothesis(
-    hypothesis: str,
-    available_tests: List[str],) -> Dict[str, object]:
+def recommend_tests_from_hypothesis(hypothesis: str,
+    available_tests: list[str],) -> dict[str, object]:
     """
     Викликає LLM і повертає структуру:
     {

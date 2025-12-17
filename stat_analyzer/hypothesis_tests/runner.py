@@ -1,6 +1,5 @@
 import json
 import pandas as pd
-from typing import Dict
 from .detectors import detect_type, suggest_tests
 from . import tests as test_impl
 
@@ -15,11 +14,8 @@ TEST_FUNCTIONS = {
     "kruskal": test_impl.run_kruskal,
     "chi2": test_impl.run_chi,
 }
-def load_custom_test(test_config_path: str) -> Dict:
-    """
-    Загружаємо JSON конфігураційний файл з можливістю для користувача використання
-    кастомних тестів
-    """
+def load_custom_test(test_config_path: str) -> dict:
+    """Loads custom test configuration from a JSON file and maps function names to callables."""
     with open(test_config_path, 'r') as json_file:
         test_config = json.load(json_file)
 
@@ -35,6 +31,7 @@ custom_tests = load_custom_test("test_config.json")
 TEST_FUNCTIONS.update(custom_tests)
 
 def run_or_suggest(df, col1, col2, description=None, auto=False):
+    """Suggests applicable tests or automatically runs the first valid one."""
     possible_tests = suggest_tests(df, col1, col2)
     if not possible_tests:
         return {"mode": "none", "message": "Не вдалося підібрати підходящий тест для цих змінних."}
@@ -49,12 +46,14 @@ def run_or_suggest(df, col1, col2, description=None, auto=False):
             "possible_tests": possible_tests}
 
 def run_test_by_name(df, test_name, col1, col2):
+    """Executes a specific statistical test by its name from the registry."""
     if test_name not in TEST_FUNCTIONS:
         raise ValueError(f"Невідомий тест {test_name!r}")
     test_func = TEST_FUNCTIONS[test_name]
     return test_func(df, col1, col2)
 
 def interpret_result(description, result, alpha=0.05):
+    """Formats the statistical test result into a human-readable report."""
     test_name = result.get("test", "unknown")
     statistic = result.get("statistic", float("nan"))
     p_value = result.get("p_value", float("nan"))
@@ -69,7 +68,6 @@ def interpret_result(description, result, alpha=0.05):
             "Немає підстав відхиляти нульову гіпотезу. "
             "Статистично значущої різниці або залежності не виявлено."
         )
-
     report = (
         f"Гіпотеза: {description}\n"
         f"Тест: {test_name}\n"
@@ -80,6 +78,7 @@ def interpret_result(description, result, alpha=0.05):
     return report
 
 def run_all_presets(df, presets, auto=True):
+    """Iterates through a list of hypothesis presets and generates reports."""
     reports = []
     for hypothesis in presets:
         cols = hypothesis["cols"]

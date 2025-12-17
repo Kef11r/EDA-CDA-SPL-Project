@@ -4,6 +4,7 @@ from scipy import stats
 ResultDict = dict[str, float]
 def run_pearson(df: pd.DataFrame, col1: str,
                 col2: str) -> ResultDict:
+    """Calculates Pearson correlation coefficient."""
     x = df[col1].astype(float)
     y = df[col2].astype(float)
     stat, p = stats.pearsonr(x, y)
@@ -15,6 +16,7 @@ def run_pearson(df: pd.DataFrame, col1: str,
 
 def run_spearman(df: pd.DataFrame, col1: str,
                  col2: str) -> ResultDict:
+    """Calculates Spearman rank correlation."""
     x = df[col1].astype(float)
     y = df[col2].astype(float)
     stat, p = stats.spearmanr(x, y)
@@ -26,6 +28,7 @@ def run_spearman(df: pd.DataFrame, col1: str,
 
 def run_ttest_ind(df: pd.DataFrame, group_col: str,
                   target_col: str) -> ResultDict:
+    """Performs independent samples t-test."""
     groups = df[group_col].dropna().unique()
     if len(groups) != 2:
         raise ValueError("t тест вимагає рівно дві групи")
@@ -40,6 +43,7 @@ def run_ttest_ind(df: pd.DataFrame, group_col: str,
 
 def run_mannwhitney(df: pd.DataFrame, group_col: str,
                     target_col: str,) -> ResultDict:
+    """Performs Mann-Whitney U test (non-parametric)."""
     groups = df[group_col].dropna().unique()
     if len(groups) != 2:
         raise ValueError("Mann Whitney вимагає рівно дві групи")
@@ -54,6 +58,7 @@ def run_mannwhitney(df: pd.DataFrame, group_col: str,
 
 def run_anova(df: pd.DataFrame, group_col: str,
               target_col: str) -> ResultDict:
+    """Performs one-way ANOVA test."""
     groups = []
     for g in df[group_col].dropna().unique():
         groups.append(df[df[group_col] == g][target_col].astype(float))
@@ -68,6 +73,7 @@ def run_anova(df: pd.DataFrame, group_col: str,
 
 def run_kruskal(df: pd.DataFrame, group_col: str,
                 target_col: str) -> ResultDict:
+    """Performs Kruskal-Wallis H-test (non-parametric ANOVA)."""
     groups = []
     for g in df[group_col].dropna().unique():
         groups.append(df[df[group_col] == g][target_col].astype(float))
@@ -82,6 +88,7 @@ def run_kruskal(df: pd.DataFrame, group_col: str,
 
 def run_chi(df: pd.DataFrame, col1: str,
              col2: str) -> ResultDict:
+    """Performs Chi-square test of independence."""
     table = pd.crosstab(df[col1], df[col2])
     stat, p, dof, expected = stats.chi2_contingency(table)
     return {

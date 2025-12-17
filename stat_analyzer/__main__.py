@@ -118,6 +118,7 @@ def run_hypothesis_interactive(df: pd.DataFrame) -> None:
     print(report)
 
 def run_presets(df: pd.DataFrame) -> None:
+    """Runs a set of pre-defined statistical hypotheses."""
     from .hypothesis_tests import run_all_presets
     print("\n=== Запуск усіх наперед визначених гіпотез ===")
     reports = run_all_presets(df, HYPOTHESES, auto=True)
@@ -126,6 +127,7 @@ def run_presets(df: pd.DataFrame) -> None:
         print("-" * 60)
 
 def run_plots(df: pd.DataFrame) -> None:
+    """Displays a sub-menu for generating various data visualizations."""
     while True:
         print("\n=== Графіки ===")
         print("1. Histogram (гістограма)")
@@ -166,6 +168,7 @@ def run_plots(df: pd.DataFrame) -> None:
             print("Некоректний вибір.")
 
 def print_menu() -> None:
+    """Displays the main application menu."""
     print("\n=== Меню аналізу vgsales ===")
     print("1. Базовий EDA")
     print("2. Перевірити власну гіпотезу (обрати змінні)")
