@@ -1,8 +1,7 @@
-from typing import Dict
 import pandas as pd
 from scipy import stats
 
-ResultDict = Dict[str, float]
+ResultDict = dict[str, float]
 def run_pearson(df: pd.DataFrame, col1: str,
                 col2: str) -> ResultDict:
     x = df[col1].astype(float)

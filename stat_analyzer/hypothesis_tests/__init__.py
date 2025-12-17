@@ -7,8 +7,6 @@ from stat_analyzer.hypothesis_tests.runner import (
 )
 from .runner import load_custom_test
 from .runner import TEST_FUNCTIONS
-
-
 from .presets import HYPOTHESES
 
 __all__ = [
