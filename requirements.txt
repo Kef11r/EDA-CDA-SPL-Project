@@ -1,1 +1,16 @@
-1
+# Data Analysis & Visualization (EDA/CDA)
+pandas
+numpy
+matplotlib
+seaborn
+scipy
+statsmodels
+openpyxl
+jupyter
+
+# LLM & LangChain
+openai
+langchain-core
+langchain-openai==0.2.12
+python-dotenv
+
